@@ -14,21 +14,40 @@ export default {
     }
 
     try {
+      // --- PUBLIC ENDPOINTS ---
+
+      // Партии
       if (path === "/api/parties" && request.method === "GET") {
         const { results } = await env.DB.prepare("SELECT * FROM parties").all();
         return Response.json(results, { headers: corsHeaders });
       }
 
+      // Новости
       if (path === "/api/news" && request.method === "GET") {
         const { results } = await env.DB.prepare("SELECT * FROM news ORDER BY timestamp DESC").all();
         return Response.json(results, { headers: corsHeaders });
       }
 
+      // Законопроекты (Чтение)
       if (path === "/api/bills" && request.method === "GET") {
         const { results } = await env.DB.prepare("SELECT * FROM bills ORDER BY timestamp DESC").all();
         const parsed = results.map(b => ({ ...b, v: JSON.parse(b.votes || "{}") }));
         return Response.json(parsed, { headers: corsHeaders });
       }
+
+      // Законопроекты (Создание — сохранение в общую базу D1)
+      if (path === "/api/bills" && request.method === "POST") {
+        const { party_id, title, text } = await request.json();
+        const timestamp = Date.now();
+        
+        await env.DB.prepare(
+          "INSERT INTO bills (party_id, title, text, timestamp, votes) VALUES (?, ?, ?, ?, ?)"
+        ).bind(party_id || "Независимый", title, text, timestamp, "{}").run();
+
+        return Response.json({ success: true }, { headers: corsHeaders });
+      }
+
+      // --- DISCORD OAUTH2 AUTHENTICATION ---
 
       if (path === "/api/auth/discord" && request.method === "POST") {
         const { code, redirect_uri } = await request.json();
@@ -72,6 +91,8 @@ export default {
           token: tokenData.access_token
         }, { headers: corsHeaders });
       }
+
+      // --- DISCORD BOT INTEGRATION ---
 
       if (path === "/api/bot/post-news" && request.method === "POST") {
         const { channel_id, content, poll } = await request.json();
