@@ -18,6 +18,8 @@ const str = (v, n) => String(v ?? '').trim().slice(0, n);
 const cookies = r => Object.fromEntries((r.headers.get('Cookie') || '').split(/;\s*/).filter(Boolean).map(s => { const i = s.indexOf('='); return [s.slice(0, i), s.slice(i + 1)]; }));
 const COOKIE = (n, v, age, path = '/') => `${n}=${v}; Path=${path}; HttpOnly; Secure; SameSite=Lax; Max-Age=${age}`;
 const staff = u => !!u && (u.role === 'pres' || u.role === 'adm');
+// Глава партии: аккаунт, который ввёл код партии. Рядовые участники (role='mem') попадают в партию через заявку.
+const headOf = u => !!(u && u.party_id && u.role !== 'mem');
 const jp = (s, d) => { try { return JSON.parse(s); } catch (e) { return d; } };
 
 async function hit(db, key, max, win) {
@@ -42,12 +44,12 @@ async function startSession(env, uid, extra = {}) {
   await env.DB.prepare('INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)').bind(await sha(tok), uid, exp).run();
   return COOKIE('sid', tok, 30 * 86400);
 }
-const meView = u => u && ({ id: u.id, nick: u.nick, r: u.role, p: u.party_id || null, discord: !!u.discord_id, avatar: u.avatar || null });
+const meView = u => u && ({ id: u.id, nick: u.nick, r: u.role, p: u.party_id || null, discord: !!u.discord_id, avatar: u.avatar || null, h: headOf(u) });
 
 async function dissolve(db, id) {
   await db.batch([
     db.prepare('DELETE FROM parties WHERE id=?').bind(id),
-    db.prepare("UPDATE users SET role=CASE WHEN role='own' THEN 'user' ELSE role END, party_id=NULL WHERE party_id=?").bind(id),
+    db.prepare("UPDATE users SET role=CASE WHEN role IN ('own','mem') THEN 'user' ELSE role END, party_id=NULL WHERE party_id=?").bind(id),
   ]);
 }
 
@@ -95,6 +97,18 @@ async function state(env, u) {
     bills: B.results.map(b => ({ id: b.id, p: b.party_id, t: b.title, x: b.text, ts: b.timestamp, v: jp(b.votes, {}) })),
     election: await electionView(env),
   };
+  if (u && u.party_id) {
+    const head = headOf(u);
+    const [M, JA] = await Promise.all([
+      db.prepare('SELECT nick, role FROM users WHERE party_id=? ORDER BY id').bind(u.party_id).all(),
+      head ? db.prepare("SELECT id,nick,why,timestamp FROM applications WHERE status='new' AND type='join' AND party_id=? ORDER BY timestamp DESC").bind(u.party_id).all() : Promise.resolve({ results: [] }),
+    ]);
+    out.party = {
+      id: u.party_id, head,
+      members: M.results.map(m => ({ n: m.nick, h: m.role !== 'mem' })),
+      apps: JA.results.map(a => ({ id: a.id, nick: a.nick, why: a.why, ts: a.timestamp })),
+    };
+  }
   if (staff(u)) {
     const [A, C, M] = await Promise.all([
       db.prepare("SELECT * FROM applications WHERE status='new' ORDER BY timestamp DESC").all(),
@@ -210,7 +224,7 @@ export default {
           else {
             const p = await db.prepare('SELECT id FROM parties WHERE code_hash=?').bind(h).first();
             if (!p) throw new Err('Код не подошёл');
-            await db.prepare("UPDATE users SET party_id=?, role=CASE WHEN role='user' THEN 'own' ELSE role END WHERE id=?").bind(p.id, u.id).run();
+            await db.prepare("UPDATE users SET party_id=?, role=CASE WHEN role IN ('user','mem') THEN 'own' ELSE role END WHERE id=?").bind(p.id, u.id).run();
           }
           await clearHit(db, 'code:' + u.id);
           return J({ ok: true });
@@ -218,7 +232,7 @@ export default {
 
         case 'POST /api/bills': {
           await post();
-          if (!u.party_id) throw new Err('Законопроект вносит владелец партии', 403);
+          if (!headOf(u)) throw new Err('Законопроект вносит глава партии', 403);
           const title = str(b.title, 80), text = str(b.text, 600);
           if (!title || !text) throw new Err('Заполни название и текст');
           if (await db.prepare('SELECT 1 FROM bills WHERE party_id=? AND timestamp>?').bind(u.party_id, Date.now() - DAY).first()) throw new Err('Партия уже вносила законопроект за последние сутки');
@@ -227,7 +241,7 @@ export default {
           return J({ ok: true });
         }
         case 'POST /api/bills/vote': {
-          need(); if (!u.party_id) throw new Err('Голосуют только владельцы партий', 403);
+          need(); if (!headOf(u)) throw new Err('Голосуют только главы партий', 403);
           const bill = await db.prepare('SELECT * FROM bills WHERE id=?').bind(Number(b.id) || 0).first();
           if (!bill) throw new Err('Закон не найден', 404);
           if (Date.now() > bill.timestamp + DAY) throw new Err('Голосование по этому закону закончилось');
@@ -244,6 +258,8 @@ export default {
             const p = await db.prepare('SELECT id FROM parties WHERE id=?').bind(str(b.party_id, 40)).first();
             if (!p) throw new Err('Партия не найдена');
             const why = str(b.why, 400); if (!why) throw new Err('Напиши, почему хочешь вступить');
+            if (u.party_id === p.id) throw new Err('Ты уже в этой партии');
+            if (await db.prepare("SELECT 1 FROM applications WHERE type='join' AND status='new' AND user_id=? AND party_id=?").bind(u.id, p.id).first()) throw new Err('Заявка в эту партию уже подана и ждёт решения');
             await db.prepare("INSERT INTO applications(type,user_id,party_id,nick,why,timestamp) VALUES('join',?,?,?,?,?)").bind(u.id, p.id, str(b.nick, 40) || u.nick, why, Date.now()).run();
             await notify(db, 'Заявка на вступление', `${u.nick} хочет в партию ${p.id}`);
           } else if (t === 'new') {
@@ -254,20 +270,33 @@ export default {
             await db.prepare("INSERT INTO applications(type,user_id,nick,name,leader,members,goal,color,avatar,timestamp) VALUES('new',?,?,?,?,?,?,?,?,?)").bind(u.id, u.nick, name, leader, members, goal, b.color, okAvatar(b.avatar), Date.now()).run();
             await notify(db, 'Заявка на создание партии', `«${name}», лидер ${leader}`);
           } else if (t === 'dis') {
-            if (!u.party_id) throw new Err('Распустить партию может только её владелец', 403);
+            if (!headOf(u)) throw new Err('Распустить партию может только её глава', 403);
             await db.prepare("INSERT INTO applications(type,user_id,party_id,nick,timestamp) VALUES('dis',?,?,?,?)").bind(u.id, u.party_id, u.nick, Date.now()).run();
             await notify(db, 'Заявка на роспуск партии', `${u.nick} просит распустить ${u.party_id}`);
           } else throw new Err('Неизвестный тип заявки');
           return J({ ok: true });
         }
         case 'POST /api/applications/decide': {
-          needStaff();
+          need();
+          if (!staff(u) && !headOf(u)) throw new Err('Нет прав', 403);
           const a = await db.prepare("SELECT * FROM applications WHERE id=? AND status='new'").bind(Number(b.id) || 0).first();
           if (!a) throw new Err('Заявка не найдена или уже рассмотрена', 404);
+          // Глава партии решает только заявки на вступление в свою партию. Остальное: президент и администраторы.
+          if (!staff(u) && !(a.type === 'join' && a.party_id === u.party_id)) throw new Err('Нет прав', 403);
           let extra = {};
           if (b.ok) {
-            if (a.type === 'join') await db.prepare('UPDATE parties SET members=COALESCE(members,0)+1 WHERE id=?').bind(a.party_id).run();
-            else if (a.type === 'new') {
+            if (a.type === 'join') {
+              if (!await db.prepare('SELECT 1 FROM parties WHERE id=?').bind(a.party_id).first()) throw new Err('Партия уже не существует', 404);
+              const t = a.user_id ? await db.prepare('SELECT id,role,party_id FROM users WHERE id=?').bind(a.user_id).first() : null;
+              if (!t || t.party_id !== a.party_id) {
+                const st = [db.prepare('UPDATE parties SET members=COALESCE(members,0)+1 WHERE id=?').bind(a.party_id)];
+                if (t && (t.role === 'user' || t.role === 'mem')) {
+                  if (t.party_id) st.push(db.prepare('UPDATE parties SET members=MAX(COALESCE(members,1)-1,0) WHERE id=?').bind(t.party_id));
+                  st.push(db.prepare("UPDATE users SET party_id=?, role='mem' WHERE id=?").bind(a.party_id, t.id));
+                }
+                await db.batch(st);
+              }
+            } else if (a.type === 'new') {
               const id = 'p' + Date.now().toString(36), code = code10();
               await db.prepare('INSERT INTO parties(id,name,leader,members,color,goal,avatar,code_hash) VALUES(?,?,?,?,?,?,?,?)').bind(id, a.name, a.leader, a.members, a.color, a.goal, a.avatar ?? null, await sha(code)).run();
               extra = { code, name: a.name };
@@ -293,7 +322,7 @@ export default {
 
         case 'POST /api/party/avatar': {
           need(); const id = str(b.party_id, 40);
-          if (!staff(u) && u.party_id !== id) throw new Err('Нет прав', 403);
+          if (!staff(u) && !(headOf(u) && u.party_id === id)) throw new Err('Аватар меняет только глава партии', 403);
           const av = okAvatar(b.avatar); if (!av) throw new Err('Нужна картинка');
           await db.prepare('UPDATE parties SET avatar=? WHERE id=?').bind(av, id).run();
           return J({ ok: true });
