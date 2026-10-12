@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;700&display=swap">
 <style>
 :root{--bg:#15110d;--bg2:#1e1812;--line:#3a2e22;--tx:#f1e6d3;--mu:#a8957b;--gold:#e0a85c;--sp:#a9d03f;--red:#e0553f;--r:18px;--fd:'Unbounded','Onest',system-ui,sans-serif;--fb:'Onest',system-ui,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-:root[data-theme=light]{}
 *,*:before,*:after{box-sizing:inherit}
 html{scroll-padding-top:90px;background:var(--bg)}
 body{margin:0;background:radial-gradient(1100px 600px at 80% -10%,#3b2a17 0,transparent 60%),var(--bg);color:var(--tx);font:16px/1.55 var(--fb);min-height:100vh;overflow-x:hidden}
@@ -170,7 +169,7 @@ const SEED=[{"id": "eb", "n": "Единый Барзян", "l": "Pidr GriffinTC"
 const HASH={"pres": "2923c09fe02de729c807ac939b5941f246cc0dc0cb5e26dd99da3ba7cce6aaaa", "adm": "50f1c037cdba49bbfbd1661af7ce47fe04244d2648bf8c0ee793e7ac1374f1a6"};
 const DAY=864e5;
 
-let S = { parties: SEED, news: [], bills: [], apps: [], cmp: [], seen: 0, el: {open:false, c:[], v:{}}, users: [] };
+let S = { parties: SEED, news: [], bills: [], apps: [], cmp: [], seen: 0, el: {open:false, c:[], v:{}}, users: [], adminNotifications: [] };
 
 // Загрузка данных с сервера (Cloudflare D1)
 async function loadFromServer() {
@@ -208,12 +207,12 @@ async function loadFromServer() {
     renderAll();
 }
 
-const save = () => {}; // Сохранение теперь происходит на сервере через API
 let me = null;
 const mk = u => ({nick: u.nick, r: u.role || 'user', p: u.party});
 try {
-    const n = sessionStorage.getItem('bs'), u = S.users.find(u => u.nick === n);
-    if (u) me = mk(u);
+    const n = sessionStorage.getItem('bs');
+    // Локально проверяем сохраненного пользователя в памяти сессии
+    if (n) me = { nick: n, r: sessionStorage.getItem('bs_r') || 'user', p: sessionStorage.getItem('bs_p') };
 } catch (e) {}
 
 const H=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -236,12 +235,12 @@ const open=b=>Date.now()<b.ts+DAY;
 function res(b){const y=Object.values(b.v).filter(x=>x==='y').length,n=Object.values(b.v).filter(x=>x==='n').length,t=y+n;return{y,n,t,pc:t?Math.round(y/t*100):0}}
 function status(b){const r=res(b);return open(b)?['Голосование','o']:(r.t&&r.y/r.t>.6?['Принят','y']:['Отклонён','n'])}
 function bills(){const el=$('#bl');if(!S.bills.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">Пока нет законопроектов. Внесите первый через сервер.</div>';return}
-el.innerHTML=[...S.bills].reverse().map(b=>{const p=P(b.p)||{n:b.p||'Партия',c:'#888'},r=res(b),[st,cl]=status(b),mv=me&&me.r==='own'?b.v[me.p]:null;
+el.innerHTML=[...S.bills].reverse().map(b=>{const p=P(b.p)||{n:b.p||'Партия',c:'#888'},r=res(b),[st,cl]=status(b);
 const left=Math.max(0,b.ts+DAY-Date.now()),hh=Math.floor(left/36e5),mm=Math.floor(left%36e5/6e4);
 return`<div class="card bill" style="border-top:4px solid ${p.c}"><span class="pill ${cl}">${st}</span> <span class="pill">${esc(p.n)}</span><h3>${esc(b.t)}</h3><p style="color:var(--mu);margin:0">${esc(b.x)}</p>
 <div class="bar"><i style="width:${r.t?r.pc:0}%"></i></div><small style="color:var(--mu)">За ${r.y}, против ${r.n}. Нужно больше 60% «за». ${open(b)?`Осталось ${hh} ч ${mm} мин`:''}</small></div>`}).join('')}
 
-$('#nb').onclick=()=>{if(!me||me.r!=='own')return toast('Законопроект вносит владелец партии. Нажми «Войти».');
+$('#nb').onclick=()=>{if(!me||me.r!=='own')return toast('Законопроект вносит владелец партии. Нажми «Войти» и введи код партии.');
 const d=dlg('<h3>Новый законопроект</h3><form id="fb"><label>Название<input name="t" required maxlength="80"></label><label>Текст закона<textarea name="x" required maxlength="600"></textarea></label><button class="btn">Внести</button></form>');
 $('#fb').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);
 const res = await fetch('/api/bills', {
@@ -254,7 +253,6 @@ if(res.ok){d.close();await loadFromServer();toast('Закон отправлен
 
 /* helpers */
 const av=(p,s=40)=>p.a?`<img class="av" src="${p.a}" style="width:${s}px;height:${s}px" alt="">`:`<span class="av" style="width:${s}px;height:${s}px;background:${p.c};font-size:${s*.45}px">${esc(p.n.replace(/[^\p{L}\p{N}]/gu,'').slice(0,1))}</span>`;
-const pic=f=>new Promise(r=>{const i=new Image,u=URL.createObjectURL(f);i.onload=()=>{const c=document.createElement('canvas');c.width=c.height=160;const x=c.getContext('2d'),m=Math.min(i.width,i.height);x.drawImage(i,(i.width-m)/2,(i.height-m)/2,m,m,0,0,160,160);URL.revokeObjectURL(u);r(c.toDataURL('image/webp',.8))};i.onerror=()=>r(null);i.src=u});
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}}),{threshold:.1});
 function reveal(r){if(r)r.querySelectorAll('.card,.chip').forEach(el=>{if(!el.classList.contains('rv')){el.classList.add('rv');io.observe(el)}})}
 function cnt(el){const n=+el.dataset.n,t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/900);el.textContent=Math.round(n*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)})(t0)}
@@ -307,21 +305,67 @@ const notes = S.adminNotifications || [];
 $('#ad').innerHTML=`<h3 style="font-size:20px;margin:0 0 12px">📥 СМС-уведомления для Администрации</h3>${notes.map(n=>`<div class="card" style="margin-bottom:10px"><strong>${esc(n.title)}</strong><p style="margin:6px 0">${esc(n.text)}</p><small style="color:var(--mu)">${new Date(n.timestamp).toLocaleString()}</small></div>`).join('')||'<div class="empty">Новых уведомлений нет.</div>'}`;
 }
 
-/* auth */
+/* auth & registration */
 function ui(){$('#login').textContent=me?'👤 '+me.nick.slice(0,14):'Войти';$('#adm').hidden=!staff()}
-function setMe(u){me=mk(u);try{sessionStorage.setItem('bs',u.nick)}catch(x){}ui();renderAll()}
+function setMe(u){
+    me = { nick: u.nick, r: u.role || 'user', p: u.party };
+    try {
+        sessionStorage.setItem('bs', u.nick);
+        sessionStorage.setItem('bs_r', me.r);
+        if(me.p) sessionStorage.setItem('bs_p', me.p);
+    } catch(x){}
+    ui(); renderAll();
+}
+
 $('#login').onclick=()=>me?profile():authDlg();
-function authDlg(){const d=dlg('<form id="fa"><label>Ник<input name="n" required maxlength="24"></label><label>Пароль<input name="p" type="password" required></label><button class="btn" id="ab">Войти</button></form>');
-$('#fa').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),n=f.get('n').trim(),k=n.toLowerCase(),h=await H(k+':'+f.get('p'));let u=S.users.find(u=>u.k===k);
-if(!u){u={nick:n,k,h,role:'user'};S.users.push(u);}setMe(u);d.close();toast('Ты вошёл как '+n)}}
-function profile(){const u=S.users.find(u=>u.nick===me.nick);if(!u)return;
-const d=dlg('<h3>'+esc(me.nick)+'</h3><form id="fk"><label>Код роли (админ/президент)<input name="k" maxlength="70" required></label><button class="btn sm">Применить</button></form><button class="btn r sm" id="lo" style="margin-top:12px">Выйти</button>');
-$('#fk').onsubmit=async e=>{e.preventDefault();const h=await H(new FormData(e.target).get('k').trim()),p=S.parties.find(p=>p.h===h);
-if(h===HASH.pres)u.role='pres';else if(h===HASH.adm)u.role='adm';else if(p){u.role='own';u.party=p.id}else return toast('Код не подошёл');setMe(u);d.close();toast('Роль обновлена')};
-$('#lo').onclick=()=>{me=null;try{sessionStorage.removeItem('bs')}catch(x){}d.close();ui();renderAll();if($('#s-admin').classList.contains('on'))go('home');toast('Ты вышел')}}
+
+function authDlg(){
+    const d=dlg('<div class="tabs"><button class="btn sm" data-t="in">Вход</button><button class="btn g sm" data-t="up">Регистрация</button></div><form id="fa"><label>Ник<input name="n" required maxlength="24" autocomplete="username"></label><label>Пароль<input name="p" type="password" required minlength="4" maxlength="40" autocomplete="current-password"></label><button class="btn" id="ab">Войти</button></form>');
+    let up=false;
+    d.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{
+        up=b.dataset.t==='up';
+        d.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('g',x!==b));
+        $('#ab').textContent=up?'Создать аккаунт':'Войти';
+    });
+    $('#fa').onsubmit=async e=>{
+        e.preventDefault();
+        const f=new FormData(e.target), n=f.get('n').trim();
+        if(!n)return toast('Введите ник');
+        setMe({ nick: n, role: 'user' });
+        d.close();
+        toast(up?'Аккаунт создан':'Ты вошёл');
+    };
+}
+
+function profile(){
+    const d=dlg('<h3>'+esc(me.nick)+'</h3><p style="color:var(--mu)">Роль: '+esc(me.r)+'</p><form id="fk"><label>Код роли или пароль партии<input name="k" maxlength="70" required autocomplete="off"></label><button class="btn sm">Применить</button></form><button class="btn r sm" id="lo" style="margin-top:12px">Выйти</button>');
+    $('#fk').onsubmit=async e=>{
+        e.preventDefault();
+        const code = new FormData(e.target).get('k').trim();
+        const h = await H(code);
+        const p = S.parties.find(p=>p.h===h);
+        
+        if(h===HASH.pres) { me.r='pres'; }
+        else if(h===HASH.adm) { me.r='adm'; }
+        else if(p) { me.r='own'; me.p=p.id; }
+        else { return toast('Код не подошёл'); }
+        
+        try {
+            sessionStorage.setItem('bs_r', me.r);
+            if(me.p) sessionStorage.setItem('bs_p', me.p);
+        } catch(x){}
+        
+        setMe(me); d.close(); toast('Роль успешно обновлена!');
+    };
+    $('#lo').onclick=()=>{
+        me=null;
+        try{ sessionStorage.removeItem('bs'); sessionStorage.removeItem('bs_r'); sessionStorage.removeItem('bs_p'); }catch(x){}
+        d.close(); ui(); renderAll(); if($('#s-admin').classList.contains('on')) go('home'); toast('Ты вышел');
+    };
+}
 
 /* elections */
-function elect(){const e=S.el;$('#el').innerHTML=`<div class="vote"><div class="lock">🔒</div><h2>Выборы</h2><p class="lead">Голосование интегрировано с Discord.</p></div>`}
+function elect(){const e=S.el;$('#el').innerHTML=`<div class="vote"><div class="lock">🔒</div><h2>Выборы</h2><p class="lead">Голосование интегрировано с системой.</p></div>`}
 
 function bell(){const n=S.bills.filter(b=>b.id>S.seen).length,b=$('#bn');b.hidden=!n;b.textContent=n}
 $('#bell').onclick=()=>go('duma');
