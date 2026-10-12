@@ -14,28 +14,37 @@ export default {
     }
 
     try {
-      // --- PUBLIC ENDPOINTS ---
+      // Автоматическое создание таблицы для СМС-уведомлений админов на сайте, если её еще нет
+      await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS admin_notifications (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT,
+          text TEXT,
+          timestamp INTEGER,
+          is_read INTEGER DEFAULT 0
+        )
+      `).run();
 
-      // Партии
+      // --- ПАРТИИ ---
       if (path === "/api/parties" && request.method === "GET") {
         const { results } = await env.DB.prepare("SELECT * FROM parties").all();
         return Response.json(results, { headers: corsHeaders });
       }
 
-      // Новости
+      // --- НОВОСТИ ---
       if (path === "/api/news" && request.method === "GET") {
         const { results } = await env.DB.prepare("SELECT * FROM news ORDER BY timestamp DESC").all();
         return Response.json(results, { headers: corsHeaders });
       }
 
-      // Законопроекты (Чтение)
+      // --- ЗАКОНОПРОЕКТЫ (Чтение) ---
       if (path === "/api/bills" && request.method === "GET") {
         const { results } = await env.DB.prepare("SELECT * FROM bills ORDER BY timestamp DESC").all();
         const parsed = results.map(b => ({ ...b, v: JSON.parse(b.votes || "{}") }));
         return Response.json(parsed, { headers: corsHeaders });
       }
 
-      // Законопроекты (Создание — сохранение в общую базу D1)
+      // --- ЗАКОНОПРОЕКТЫ (Создание + СМС уведомление админам) ---
       if (path === "/api/bills" && request.method === "POST") {
         const { party_id, title, text } = await request.json();
         const timestamp = Date.now();
@@ -44,11 +53,44 @@ export default {
           "INSERT INTO bills (party_id, title, text, timestamp, votes) VALUES (?, ?, ?, ?, ?)"
         ).bind(party_id || "Независимый", title, text, timestamp, "{}").run();
 
+        // Создаем СМС-уведомление для админов на сайте
+        await env.DB.prepare(
+          "INSERT INTO admin_notifications (title, text, timestamp) VALUES (?, ?, ?)"
+        ).bind("Новый законопроект", `Подан закон: "${title}" (партия: ${party_id || "Независимый"})`, timestamp).run();
+
         return Response.json({ success: true }, { headers: corsHeaders });
       }
 
-      // --- DISCORD OAUTH2 AUTHENTICATION ---
+      // --- ЗАЯВКИ (Чтение) ---
+      if (path === "/api/applications" && request.method === "GET") {
+        const { results } = await env.DB.prepare("SELECT * FROM applications ORDER BY timestamp DESC").all();
+        return Response.json(results, { headers: corsHeaders });
+      }
 
+      // --- ЗАЯВКИ (Создание + СМС уведомление админам) ---
+      if (path === "/api/applications" && request.method === "POST") {
+        const { nick, text, party } = await request.json();
+        const timestamp = Date.now();
+        
+        await env.DB.prepare(
+          "INSERT INTO applications (user_id, nick, text, party, timestamp) VALUES (?, ?, ?, ?, ?)"
+        ).bind("unknown", nick || "Аноним", text || "", party || "Не указана", timestamp).run();
+
+        // Создаем СМС-уведомление для админов на сайте
+        await env.DB.prepare(
+          "INSERT INTO admin_notifications (title, text, timestamp) VALUES (?, ?, ?)"
+        ).bind("Новая заявка", `Игрок ${nick || "Аноним"} подал заявку в партию: ${party || "Не указана"}`, timestamp).run();
+
+        return Response.json({ success: true }, { headers: corsHeaders });
+      }
+
+      // --- СМС УВЕДОМЛЕНИЯ ДЛЯ АДМИНОВ НА САЙТЕ ---
+      if (path === "/api/admin/notifications" && request.method === "GET") {
+        const { results } = await env.DB.prepare("SELECT * FROM admin_notifications ORDER BY timestamp DESC").all();
+        return Response.json(results, { headers: corsHeaders });
+      }
+
+      // --- DISCORD OAUTH2 AUTHENTICATION ---
       if (path === "/api/auth/discord" && request.method === "POST") {
         const { code, redirect_uri } = await request.json();
 
@@ -93,7 +135,6 @@ export default {
       }
 
       // --- DISCORD BOT INTEGRATION ---
-
       if (path === "/api/bot/post-news" && request.method === "POST") {
         const { channel_id, content, poll } = await request.json();
 
