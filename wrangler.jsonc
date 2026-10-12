@@ -4,7 +4,9 @@
   "main": "worker/src/index.js",
   "compatibility_date": "2026-03-01",
   "assets": {
-    "directory": "./public"
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
   },
   "d1_databases": [
     {
@@ -12,5 +14,12 @@
       "database_name": "bulbastan",
       "database_id": "6d594afb-e692-42c1-a63d-4af9eacf661e"
     }
-  ]
+  ],
+  "vars": {
+    "1559181565517500416": "",
+    "1492502208363761664": "",
+    "1492582744524460142": "",
+    "1512871306045952162": "",
+    "1520917082064294091": ""
+  }
 }
