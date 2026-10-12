@@ -166,13 +166,56 @@ h2:after{content:"";display:block;height:4px;width:0;margin-top:12px;border-radi
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const SEED=[{"id": "eb", "n": "Единый Барзян", "l": "Pidr GriffinTC", "m": 2, "c": "#e3c53a", "g": "Боготворить Барзяна и всё, что с ним связано. Обещают голод и безработицу и хотят тоталитарный режим с Барзяном во главе.", "h": "8511e30d3e1fb36ce79dc1dda0dba5bfdcc4afdf26ec7e9626dfc2042dc81904"}, {"id": "gs", "n": "Groove Street", "l": "@suzukaaa", "m": 1, "c": "#3fae4f", "g": "Играть капты и жёстко фармить вирты в скине CJ, сделать руму для троллинга, добавить крутые банды и забить Барзяну капт.", "h": "0d66274e3fa210c74aa2ab50b58ce738e30e284e49806d09d7b5eb86cac2a743"}, {"id": "il", "n": "Единый Израиль", "l": "𝓨𝓪𝓻𝓸𝓼𝓵𝓪𝓿𝓬𝓱𝓮", "m": 4, "c": "#3b6fd8", "g": "Хотят вместо президента одного диктатора навсегда: так привычнее пользователям из РФ и Беларуси. Девиз: застой, скучно, хочется движухи.", "h": "90345c83e28a126c7cf2de3cba0b721c6a61c21e9c11c47087f32cd1d32e782d"}, {"id": "c4", "n": "CLAN 404", "l": "Данёк", "m": 3, "c": "#7f8c9a", "g": "Партия для решения проблем. Обещают принести воды.", "h": "aaa701dce7f21923120981583d117f38acecf3e16efb2551c7f846d789b8a8e1"}, {"id": "mt", "n": "Mettlers", "l": "Tow_Mett [Deⅵl]", "m": 1, "c": "#a066e0", "g": "Изменить интерфейс партии, помогать с отбором адекватных людей и с модерацией.", "h": "95bc69323058282e6ade9e657858b53aef95d4ca153fc9a49a9cd59b6780b177"}, {"id": "mi", "n": "Бульбастановская Мияби", "l": "Barzyanchik", "m": 2, "c": "#e5568c", "g": "Сделать сервер свободнее, развивать турниры и розыгрыши, сменить правила и сделать сервер лучшим. Обещают свободу, счастье и мирные законы.", "h": "887e0bb37453f3ce0e2f9840e85bd8f991b9c86a8b449a08a7316601fe70fa46"}, {"id": "ps", "n": "Клуб Секретно-обьебаные псы", "l": "Андрюша", "m": 3, "c": "#b5835a", "g": "Чтобы весь сервер был в картинках псов. Обещают соревнование: кто первым принесёт чекушку на четвереньках с хвостом.", "h": "c6472be20775b774bfacf6882855134321e8ac2784cd9e03919cee2bd6b0b366"}, {"id": "al", "n": "Алабаи", "l": "уточняется", "m": 1, "c": "#4fb8c4", "g": "Подробности о партии скоро появятся.", "h": "9257d37023503d86ddcfba9ce14c194d32584579440181f22bfffa94ef4db388"}];const HASH={"pres": "2923c09fe02de729c807ac939b5941f246cc0dc0cb5e26dd99da3ba7cce6aaaa", "adm": "50f1c037cdba49bbfbd1661af7ce47fe04244d2648bf8c0ee793e7ac1374f1a6"};
-const K='bulbastan_v2',DAY=864e5;
-let S;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
-if(!S)S={parties:SEED,news:[{id:1,ts:Date.now()-DAY,t:'Сайт Бульбастана открыт',x:'Теперь у государства есть свой сайт: Госдума, партии, заявки и новости.'},{id:2,ts:Date.now()-DAY/2,t:'Выборы скоро',x:'Скоро выборы президента. Подробности и пароли для голосования будут в Discord.'}],bills:[],apps:[],cmp:[],seen:0};
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
-if(!S.users)S.users=[];if(!S.el)S.el={open:false,c:[],v:{}};
-let me=null;const mk=u=>({nick:u.nick,r:u.role||'user',p:u.party});try{const n=sessionStorage.getItem('bs'),u=S.users.find(u=>u.nick===n);if(u)me=mk(u)}catch(e){}
+const SEED=[{"id": "eb", "n": "Единый Барзян", "l": "Pidr GriffinTC", "m": 2, "c": "#e3c53a", "g": "Боготворить Барзяна и всё, что с ним связано. Обещают голод и безработицу и хотят тоталитарный режим с Барзяном во главе.", "h": "8511e30d3e1fb36ce79dc1dda0dba5bfdcc4afdf26ec7e9626dfc2042dc81904"}, {"id": "gs", "n": "Groove Street", "l": "@suzukaaa", "m": 1, "c": "#3fae4f", "g": "Играть капты и жёстко фармить вирты в скине CJ, сделать руму для троллинга, добавить крутые банды и забить Барзяну капт.", "h": "0d66274e3fa210c74aa2ab50b58ce738e30e284e49806d09d7b5eb86cac2a743"}, {"id": "il", "n": "Единый Израиль", "l": "𝓨𝓪𝓻𝓸𝓼𝓵𝓪𝓿𝓬𝓱𝓮", "m": 4, "c": "#3b6fd8", "g": "Хотят вместо президента одного диктатора навсегда: так привычнее пользователям из РФ и Беларуси. Девиз: застой, скучно, хочется движухи.", "h": "90345c83e28a126c7cf2de3cba0b721c6a61c21e9c11c47087f32cd1d32e782d"}, {"id": "c4", "n": "CLAN 404", "l": "Данёк", "m": 3, "c": "#7f8c9a", "g": "Партия для решения проблем. Обещают принести воды.", "h": "aaa701dce7f21923120981583d117f38acecf3e16efb2551c7f846d789b8a8e1"}, {"id": "mt", "n": "Mettlers", "l": "Tow_Mett [Deⅵl]", "m": 1, "c": "#a066e0", "g": "Изменить интерфейс партии, помогать с отбором адекватных людей и с модерацией.", "h": "95bc69323058282e6ade9e657858b53aef95d4ca153fc9a49a9cd59b6780b177"}, {"id": "mi", "n": "Бульбастановская Мияби", "l": "Barzyanchik", "m": 2, "c": "#e5568c", "g": "Сделать сервер свободнее, развивать турниры и розыгрыши, сменить правила и сделать сервер лучшим. Обещают свободу, счастье и мирные законы.", "h": "887e0bb37453f3ce0e2f9840e85bd8f991b9c86a8b449a08a7316601fe70fa46"}, {"id": "ps", "n": "Клуб Секретно-обьебаные псы", "l": "Андрюша", "m": 3, "c": "#b5835a", "g": "Чтобы весь сервер был в картинках псов. Обещают соревнование: кто первым принесёт чекушку на четвереньках с хвостом.", "h": "c6472be20775b774bfacf6882855134321e8ac2784cd9e03919cee2bd6b0b366"}, {"id": "al", "n": "Алабаи", "l": "уточняется", "m": 1, "c": "#4fb8c4", "g": "Подробности о партии скоро появятся.", "h": "9257d37023503d86ddcfba9ce14c194d32584579440181f22bfffa94ef4db388"}];
+const HASH={"pres": "2923c09fe02de729c807ac939b5941f246cc0dc0cb5e26dd99da3ba7cce6aaaa", "adm": "50f1c037cdba49bbfbd1661af7ce47fe04244d2648bf8c0ee793e7ac1374f1a6"};
+const DAY=864e5;
+
+let S = { parties: SEED, news: [], bills: [], apps: [], cmp: [], seen: 0, el: {open:false, c:[], v:{}}, users: [] };
+
+// Загрузка данных с сервера (Cloudflare D1)
+async function loadFromServer() {
+    try {
+        const [pRes, nRes, bRes, aRes, admRes] = await Promise.all([
+            fetch('/api/parties').then(r => r.json()).catch(() => SEED),
+            fetch('/api/news').then(r => r.json()).catch(() => []),
+            fetch('/api/bills').then(r => r.json()).catch(() => []),
+            fetch('/api/applications').then(r => r.json()).catch(() => []),
+            fetch('/api/admin/notifications').then(r => r.json()).catch(() => [])
+        ]);
+        if (pRes && pRes.length) S.parties = pRes;
+        if (nRes && nRes.length) S.news = nRes;
+        if (bRes) S.bills = bRes.map(b => ({
+            id: b.id,
+            p: b.party_id,
+            t: b.title,
+            x: b.text,
+            ts: b.timestamp,
+            v: b.v || JSON.parse(b.votes || "{}")
+        }));
+        if (aRes) S.apps = aRes.map(a => ({
+            id: a.id,
+            t: 'join',
+            p: a.party,
+            nick: a.nick,
+            why: a.text,
+            st: 'new',
+            ts: a.timestamp
+        }));
+        if (admRes) S.adminNotifications = admRes;
+    } catch (e) {
+        console.error("Ошибка загрузки данных с сервера", e);
+    }
+    renderAll();
+}
+
+const save = () => {}; // Сохранение теперь происходит на сервере через API
+let me = null;
+const mk = u => ({nick: u.nick, r: u.role || 'user', p: u.party});
+try {
+    const n = sessionStorage.getItem('bs'), u = S.users.find(u => u.nick === n);
+    if (u) me = mk(u);
+} catch (e) {}
+
 const H=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
 const fmt=t=>new Date(t).toLocaleString('ru',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
 const staff=()=>me&&(me.r==='pres'||me.r==='adm');
@@ -182,7 +225,7 @@ function dlg(h){const d=$('#dlg');d.innerHTML=h+'<div class="row" style="margin-
 function rnd(n=10){const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789',b=crypto.getRandomValues(new Uint8Array(n));return[...b].map(x=>a[x%a.length]).join('')}
 
 /* routing */
-function go(id){if(id==='admin'&&!staff())id='home';$$('section').forEach(s=>s.classList.toggle('on',s.id==='s-'+id));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===id));history.replaceState(null,'','#'+id);scrollTo({top:0});if(id==='duma')hemi();if(id==='home')setTimeout(fit,60);if(id==='duma'&&S.bills.length){S.seen=Math.max(...S.bills.map(b=>b.id));save();bell()}}
+function go(id){if(id==='admin'&&!staff())id='home';$$('section').forEach(s=>s.classList.toggle('on',s.id==='s-'+id));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===id));history.replaceState(null,'','#'+id);scrollTo({top:0});if(id==='duma')hemi();if(id==='home')setTimeout(fit,60);if(id==='duma'&&S.bills.length){S.seen=Math.max(...S.bills.map(b=>b.id));bell()}}
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go)});
 
 /* hero title */
@@ -192,17 +235,22 @@ $('#t').innerHTML='Бульбастан'.split('').map((c,i)=>`<span style="anim
 const open=b=>Date.now()<b.ts+DAY;
 function res(b){const y=Object.values(b.v).filter(x=>x==='y').length,n=Object.values(b.v).filter(x=>x==='n').length,t=y+n;return{y,n,t,pc:t?Math.round(y/t*100):0}}
 function status(b){const r=res(b);return open(b)?['Голосование','o']:(r.t&&r.y/r.t>.6?['Принят','y']:['Отклонён','n'])}
-function bills(){const el=$('#bl');if(!S.bills.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">Пока нет законопроектов. Владелец партии может внести первый.</div>';return}
-el.innerHTML=[...S.bills].reverse().map(b=>{const p=P(b.p)||{n:'Партия распущена',c:'#888'},r=res(b),[st,cl]=status(b),mv=me&&me.r==='own'?b.v[me.p]:null;
+function bills(){const el=$('#bl');if(!S.bills.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">Пока нет законопроектов. Внесите первый через сервер.</div>';return}
+el.innerHTML=[...S.bills].reverse().map(b=>{const p=P(b.p)||{n:b.p||'Партия',c:'#888'},r=res(b),[st,cl]=status(b),mv=me&&me.r==='own'?b.v[me.p]:null;
 const left=Math.max(0,b.ts+DAY-Date.now()),hh=Math.floor(left/36e5),mm=Math.floor(left%36e5/6e4);
 return`<div class="card bill" style="border-top:4px solid ${p.c}"><span class="pill ${cl}">${st}</span> <span class="pill">${esc(p.n)}</span><h3>${esc(b.t)}</h3><p style="color:var(--mu);margin:0">${esc(b.x)}</p>
-<div class="bar"><i style="width:${r.t?r.pc:0}%"></i></div><small style="color:var(--mu)">За ${r.y}, против ${r.n}. Нужно больше 60% «за». ${open(b)?`Осталось ${hh} ч ${mm} мин`:''}</small>
-${open(b)&&me&&me.r==='own'?`<div class="row" style="margin-top:12px"><button class="btn s sm" data-v="${b.id}:y">${mv==='y'?'✓ ':''}За</button><button class="btn r sm" data-v="${b.id}:n">${mv==='n'?'✓ ':''}Против</button></div>`:''}</div>`}).join('')}
-$('#bl').addEventListener('click',e=>{const v=e.target.closest('[data-v]');if(!v)return;const[i,x]=v.dataset.v.split(':'),b=S.bills.find(b=>b.id==i);if(!b||!open(b)||!me||me.r!=='own')return;b.v[me.p]=x;save();bills();toast('Голос партии учтён')});
+<div class="bar"><i style="width:${r.t?r.pc:0}%"></i></div><small style="color:var(--mu)">За ${r.y}, против ${r.n}. Нужно больше 60% «за». ${open(b)?`Осталось ${hh} ч ${mm} мин`:''}</small></div>`}).join('')}
+
 $('#nb').onclick=()=>{if(!me||me.r!=='own')return toast('Законопроект вносит владелец партии. Нажми «Войти».');
-const last=S.bills.find(b=>b.p===me.p&&Date.now()-b.ts<DAY);if(last)return toast('Партия уже вносила законопроект сегодня. Следующий можно через '+Math.ceil((last.ts+DAY-Date.now())/36e5)+' ч.');
 const d=dlg('<h3>Новый законопроект</h3><form id="fb"><label>Название<input name="t" required maxlength="80"></label><label>Текст закона<textarea name="x" required maxlength="600"></textarea></label><button class="btn">Внести</button></form>');
-$('#fb').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);S.bills.push({id:Date.now(),p:me.p,t:f.get('t'),x:f.get('x'),ts:Date.now(),v:{[me.p]:'y'}});save();d.close();bills();bell();toast('Законопроект внесён, партии получат уведомление')}};
+$('#fb').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);
+const res = await fetch('/api/bills', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ party_id: me.p, title: f.get('t'), text: f.get('x') })
+});
+if(res.ok){d.close();await loadFromServer();toast('Закон отправлен в Госдуму и админам!')}else{toast('Ошибка отправки закона')}
+};};
 
 /* helpers */
 const av=(p,s=40)=>p.a?`<img class="av" src="${p.a}" style="width:${s}px;height:${s}px" alt="">`:`<span class="av" style="width:${s}px;height:${s}px;background:${p.c};font-size:${s*.45}px">${esc(p.n.replace(/[^\p{L}\p{N}]/gu,'').slice(0,1))}</span>`;
@@ -212,92 +260,84 @@ function reveal(r){if(r)r.querySelectorAll('.card,.chip').forEach(el=>{if(!el.cl
 function cnt(el){const n=+el.dataset.n,t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/900);el.textContent=Math.round(n*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)})(t0)}
 document.addEventListener('pointermove',e=>{const c=e.target.closest&&e.target.closest('.card');if(c){const r=c.getBoundingClientRect();c.style.setProperty('--mx',e.clientX-r.left+'px');c.style.setProperty('--my',e.clientY-r.top+'px')}
 const h=$('.pot .lg');if(h&&$('#s-home').classList.contains('on')){const dx=e.clientX/innerWidth-.5,dy=e.clientY/innerHeight-.5;h.style.transform=`translate(${dx*22}px,${dy*16}px) rotate(${dx*8}deg)`}});
+
 /* hemicycle */
 function hemi(){const ps=S.parties,n=ps.length,cx=450,cy=430,R=330;
 $('#hemi').innerHTML=`<svg viewBox="0 0 900 480" role="img" aria-label="Места партий в Госдуме"><path class="arc" d="M${cx-R-70} ${cy}A${R+70} ${R+70} 0 0 1 ${cx+R+70} ${cy}" fill="none" stroke="#3a2e22" stroke-width="2" stroke-dasharray="4 10"/><svg x="${cx-72}" y="${cy-132}" width="144" height="132" viewBox="0 -12 200 184"><use href="#lg"/></svg><text x="${cx}" y="${cy+24}" text-anchor="middle" fill="#a8957b" font-size="14" font-family="Onest">Трибуна президента</text>`+ps.map((p,i)=>{const a=Math.PI-(i+.5)*Math.PI/n,x=cx+R*Math.cos(a),y=cy-R*Math.sin(a),L=p.n.replace(/[^\p{L}\p{N}]/gu,'').slice(0,1)||'?';return`<g class="seat" tabindex="0" role="button" aria-label="${esc(p.n)}" data-id="${p.id}"><g class="c" style="--i:${i};--g:${p.c}"><circle cx="${x}" cy="${y}" r="48" fill="${p.c}" stroke="#15110d" stroke-width="6"/>${p.a?`<clipPath id="k${i}"><circle cx="${x}" cy="${y}" r="42"/></clipPath><image href="${p.a}" x="${x-42}" y="${y-42}" width="84" height="84" clip-path="url(#k${i})" preserveAspectRatio="xMidYMid slice"/>`:`<text x="${x}" y="${y+12}" text-anchor="middle" font-size="34" font-weight="700" fill="#15110d" font-family="Unbounded">${esc(L)}</text>`}</g><text x="${x}" y="${y+76}" text-anchor="middle" fill="#f1e6d3" font-size="14" font-family="Onest">${esc(p.n.length>16?p.n.slice(0,15)+'…':p.n)}</text></g>`}).join('')+'</svg>'}
 $('#hemi').addEventListener('click',e=>{const s=e.target.closest('.seat');if(s)partyDlg(s.dataset.id)});
 $('#hemi').addEventListener('keydown',e=>{if(e.key==='Enter'){const s=e.target.closest('.seat');if(s)partyDlg(s.dataset.id)}});
-function parties(){$('#pl').innerHTML=S.parties.map((p,i)=>`<div class="card party" style="--c:${p.c};--d:${i*.06}s" data-id="${p.id}"><div class="row" style="flex-wrap:nowrap;gap:14px">${av(p,52)}<div><h3>${esc(p.n)}</h3><small class="ln">Лидер: ${esc(p.l)} · 👥 ${p.m?p.m:'?'}/14</small></div></div></div>`).join('')||'<div class="empty">Партий пока нет. Создай первую в разделе «Заявки».</div>';
+function parties(){$('#pl').innerHTML=S.parties.map((p,i)=>`<div class="card party" style="--c:${p.c};--d:${i*.06}s" data-id="${p.id}"><div class="row" style="flex-wrap:nowrap;gap:14px">${av(p,52)}<div><h3>${esc(p.n)}</h3><small class="ln">Лидер: ${esc(p.l)} · 👥 ${p.m?p.m:'?'}/14</small></div></div></div>`).join('')||'<div class="empty">Партий пока нет.</div>';
 $('#jp').innerHTML=S.parties.map(p=>`<option value="${p.id}">${esc(p.n)}</option>`).join('')}
 $('#pl').addEventListener('click',e=>{const c=e.target.closest('.party');if(c)partyDlg(c.dataset.id)});
-function partyDlg(id){const p=P(id);if(!p)return;const mine=me&&me.r==='own'&&me.p===id,can=mine||staff();
-const d=dlg(`<div class="row" style="flex-wrap:nowrap;gap:14px;margin-bottom:12px">${av(p,64)}<h3 style="color:${p.c}">${esc(p.n)}</h3></div><p style="margin:0 0 6px"><b>Лидер:</b> ${esc(p.l)}</p><p style="margin:0 0 6px"><b>Участников:</b> ${p.m?p.m:'?'}/14</p><p style="color:var(--mu)">${esc(p.g)}</p><div class="row">${can?'<label class="btn g sm" style="cursor:pointer">Сменить аватар<input type="file" id="pa" accept="image/*" hidden></label>':''}${mine?'<button class="btn r sm" id="dz">Подать заявку на роспуск</button>':''}${staff()?'<button class="btn r sm" id="dx">Распустить</button><button class="btn g sm" id="np">Новый пароль владельца</button>':''}</div>`);
-const q=s=>d.querySelector(s);
-if(q('#pa'))q('#pa').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;const u=await pic(f);if(!u)return toast('Не удалось прочитать картинку');p.a=u;save();d.close();renderAll();toast('Аватар обновлён')};
-if(q('#dz'))q('#dz').onclick=()=>{S.apps.push({id:Date.now(),t:'dis',p:id,st:'new',ts:Date.now()});save();d.close();toast('Заявка на роспуск отправлена президенту')};
-if(q('#dx'))q('#dx').onclick=()=>{if(confirm('Распустить партию «'+p.n+'»?')){S.parties=S.parties.filter(x=>x.id!==id);save();d.close();renderAll();toast('Партия распущена')}};
-if(q('#np'))q('#np').onclick=async()=>{const pw=rnd();p.h=await H(pw);save();d.close();dlg('<h3>Новый пароль</h3><p style="color:var(--mu)">Пароль партии «'+esc(p.n)+'». Он покажется один раз, передай его владельцу.</p><div class="pw">'+pw+'</div>')}}
+function partyDlg(id){const p=P(id);if(!p)return;dlg(`<div class="row" style="flex-wrap:nowrap;gap:14px;margin-bottom:12px">${av(p,64)}<h3 style="color:${p.c}">${esc(p.n)}</h3></div><p style="margin:0 0 6px"><b>Лидер:</b> ${esc(p.l)}</p><p style="margin:0 0 6px"><b>Участников:</b> ${p.m?p.m:'?'}/14</p><p style="color:var(--mu)">${esc(p.g)}</p>`);}
 
 /* news, rules, president, stats */
-function news(){const h=n=>`<div class="card news"><time>${fmt(n.ts)}</time><h3 style="font-size:20px;margin:6px 0">${esc(n.t)}</h3><p style="margin:0;color:var(--mu)">${esc(n.x)}</p></div>`,l=[...S.news].reverse();
-$('#nl').innerHTML=l.map(h).join('')||'<div class="empty">Новостей пока нет.</div>';$('#hn').innerHTML=l.slice(0,3).map(h).join('')}
+function news(){const h=n=>`<div class="card news"><time>${fmt(n.timestamp||n.ts)}</time><h3 style="font-size:20px;margin:6px 0">${esc(n.title||n.t)}</h3><p style="margin:0;color:var(--mu)">${esc(n.text||n.x)}</p></div>`,l=[...S.news].reverse();
+$('#nl').innerHTML=l.map(h).join('')||'<div class="empty">Новости отсутствуют.</div>';$('#hn').innerHTML=l.slice(0,3).map(h).join('')}
 function stats(){const o=S.bills.filter(open).length;$('#stats').innerHTML=`<div class="card stat"><b data-n="${S.parties.length}">${S.parties.length}</b><span>партий в Госдуме</span></div><div class="card stat"><b data-n="${o}">${o}</b><span>законов на голосовании</span></div><div class="card stat"><b style="font-size:22px;padding:8px 0">𝓨𝓪𝓻𝓸𝓼𝓵𝓪𝓿𝓬𝓱𝓮</b><span>действующий президент</span></div>`;if(!stats.d){stats.d=1;$$('#stats [data-n]').forEach(cnt)}}
 function mq(){$('#mqi').innerHTML=[...S.parties,...S.parties].map(p=>`<span>${av(p,24)}${esc(p.n)}</span>`).join('')}
 const PR=[{n:'1-й',pres:'Данёк',pm:'Zhela',d:'01.07.2026 — 30.09.2026'},{n:'2-й',pres:'Данёк',pm:'Zhela',d:'01.08.2026 — 30.09.2026',note:'второй срок'},{n:'3-й',pres:'𝓨𝓪𝓻𝓸𝓼𝓵𝓪𝓿𝓬𝓱𝓮',pm:'Андрюша',d:'с 30.09.2026',cur:1}];
-const GN=[[1,'ДС','Barzyanchik','11.04.2026 — 16.04.2026','конец срока'],[1,'МАЙН','𝓨𝓪𝓻𝓸𝓼𝓵𝓪𝓿𝓬𝓱𝓮','11.04.2026 — 16.04.2026','конец срока'],[2,'МАЙН','sh!n','16.04.2026 — 17.04.2026','неактивность, потом выбрали другого'],[2,'ДС','Андрюша','16.04.2026 — 24.05.2026','конец срока'],[2,'МАЙН','неизвестный-пользователь','16.04.2026 — 20.04.2026','по собственному желанию'],[2,'МАЙН','Barzyanchik','20.04.2026 — 02.05.2026','конец срока',1],[3,'ДС','кли🔨','02.05.2026 — 29.05.2026','конец срока'],[3,'МАЙН','v1lad1s','02.05.2026 — 24.05.2026','по собственному желанию'],[3,'МАЙН','Андрюша','24.05.2026 — 29.05.2026','конец срока',1],[4,'ДС','𝓨𝓪𝓻𝓸𝓼𝓵𝓪𝓿𝓬𝓱𝓮','29.05.2026 — 01.07.2026','конец срока'],[4,'МАЙН','Lososik','29.05.2026 — 01.07.2026','конец срока']];
-function pres(){const g=[1,2,3,4].map(k=>`<div class="card gn"><h3>${k}-й срок генералов</h3>${GN.filter(r=>r[0]===k).map(r=>`<div class="gr"><span class="b ${r[1]==='ДС'?'d':'m'}">${r[1]}</span><div><b>${esc(r[2])}</b>${r[5]?' <span class="pill o">СЗ</span>':''}<small>${r[3]} · ${r[4]}</small></div></div>`).join('')}</div>`).join('')+'<div class="card gn"><h3>5-й срок генералов</h3><p style="color:var(--mu);margin:0">Генералы ДС и МАЙН: должности будут удалены.</p></div>';
-$('#pr').innerHTML=`<div class="tl">${[...PR].reverse().map(x=>`<div class="card tli${x.cur?' cur':''}"><span class="dot"></span><div class="row"><span class="pill ${x.cur?'y':'o'}">${x.cur?'Действующий президент':'Президент '+x.n}</span>${x.note?`<span class="pill">${x.note}</span>`:''}${x.cur?'':''}</div><h3 class="pn">${esc(x.pres)}</h3><p class="pm">Премьер-министр: ${esc(x.pm)}</p><small style="color:var(--mu)">${x.d}</small></div>`).join('')}</div><h3 class="sub">Генералы</h3><p class="lead">Генералы Бульбастана по срокам. СЗ означает срочную замену.</p><div class="grid">${g}</div>`}
+const GN=[[1,'ДС','Barzyanchik','11.04.2026 — 16.04.2026','конец срока'],[1,'МАЙН','𝓨𝓪𝓻𝓸𝓼𝓵𝓪𝓿𝓬𝓱𝓮','11.04.2026 — 16.04.2026','конец срока'],[2,'МАЙН','sh!n','16.04.2026 — 17.04.2026','неактивность'],[2,'ДС','Андрюша','16.04.2026 — 24.05.2026','конец срока'],[2,'МАЙН','неизвестный','16.04.2026 — 20.04.2026','по с/ж'],[2,'МАЙН','Barzyanchik','20.04.2026 — 02.05.2026','конец срока',1],[3,'ДС','кли🔨','02.05.2026 — 29.05.2026','конец срока'],[3,'МАЙН','v1lad1s','02.05.2026 — 24.05.2026','по с/ж'],[3,'МАЙН','Андрюша','24.05.2026 — 29.05.2026','конец срока',1],[4,'ДС','𝓨𝓪𝓻𝓸𝓼𝓵𝓪𝓿𝓬𝓱𝓮','29.05.2026 — 01.07.2026','конец срока'],[4,'МАЙН','Lososik','29.05.2026 — 01.07.2026','конец срока']];
+function pres(){const g=[1,2,3,4].map(k=>`<div class="card gn"><h3>${k}-й срок генералов</h3>${GN.filter(r=>r[0]===k).map(r=>`<div class="gr"><span class="b ${r[1]==='ДС'?'d':'m'}">${r[1]}</span><div><b>${esc(r[2])}</b>${r[5]?' <span class="pill o">СЗ</span>':''}<small>${r[3]} ·${r[4]}</small></div></div>`).join('')}</div>`).join('')+'<div class="card gn"><h3>5-й срок генералов</h3><p style="color:var(--mu);margin:0">Генералы ДС и МАЙН: должности будут удалены.</p></div>';
+$('#pr').innerHTML=`<div class="tl">${[...PR].reverse().map(x=>`<div class="card tli${x.cur?' cur':''}"><span class="dot"></span><div class="row"><span class="pill ${x.cur?'y':'o'}">${x.cur?'Действующий президент':'Президент '+x.n}</span>${x.note?`<span class="pill">${x.note}</span>`:''}</div><h3 class="pn">${esc(x.pres)}</h3><p class="pm">Премьер-министр: ${esc(x.pm)}</p><small style="color:var(--mu)">${x.d}</small></div>`).join('')}</div><h3 class="sub">Генералы</h3><p class="lead">Генералы Бульбастана по срокам.</p><div class="grid">${g}</div>`}
 pres();
-const RU=[['🎁','Розыгрыши',['Не отдал скин после своего розыгрыша: вечный запрет на создание розыгрышей и участие в них.','Нарушил правила розыгрыша: наказание 1.4.','Читы или полностью испорченный розыгрыш: 1.4 или 1.5.']],['🎙️','Голосовые каналы',['Саундпад и крики, которые мешают всем: 0.1 или 0.2.','Мут дольше 5–10 минут без веской причины наказуем уже для модератора или администратора.']],['🛡️','Безопасность сервера',['Спам: 0.3 или 0.4.','Вредоносные файлы и ссылки: 0.5 и 0.6–0.8.','Рейд ботами или попытка навредить серверу: 0.7 или 0.8 и 0.9.','Взлом игроков: 0.7 или 0.8 и 0.9 или 1.6.','Помеха проекту сервера: 0.9.']],['🏛️','Партии и президент',['Массовые нарушения за президента: 1.3 или 1.4. За нарушение этого правила: 1.2 или 1.3.','Распустил партию: временный запрет 1.0.','Названия партий с террористическими группировками и организациями запрещены (с 25.07).','Партии могут сами добавлять и отменять свои правила.']],['⛔','Заблокированная партия',['Партия и её участники получают роль «Заблокированная партия».','Нельзя вносить законы, участвовать в выборах и брать новых людей.','Временный бан снимается, когда нарушение исправлено.','Не исправили за неделю: партию удаляют, а новую создать нельзя 30 дней.']],['🧩','Остальное',['На проектах сообщества действуют только их правила, даже самые абсурдные. Например, на сервере в Майнкрафте.','Запасной пункт: нельзя красть точку нагрева кастрюли.','Любое наказание можно оспорить, если оно выдано неверно.']]];
-const PE=[['0.1','Мут микрофона до 5 минут'],['0.2','Мут микрофона от 5 до 30 минут'],['0.3','Тайм-аут от 1 минуты до 1 часа'],['0.4','Тайм-аут от 1 часа до 7 дней'],['0.5','Удаление сообщения'],['0.6','Бан на сервере от 1 часа до 7 дней'],['0.7','Бан на сервере от 7 до 30 дней'],['0.8','Бан на сервере навсегда'],['0.9','Блокировка на будущие проекты'],['1.0','Запрет создавать партию на 15–90 дней'],['1.1','Запрет создавать партию навсегда'],['1.2','Запрет на кандидатуру в президенты на 15–90 дней'],['1.3','Запрет на кандидатуру в президенты навсегда'],['1.4','Запрет на розыгрыши на время'],['1.5','Запрет на розыгрыши навсегда'],['1.6','Полная изоляция в отдельном канале']];
+const RU=[['🎁','Розыгрыши',['Не отдал скин после своего розыгрыша: вечный запрет.','Нарушил правила розыгрыша: 1.4.']],['🎙️','Голосовые каналы',['Саундпад и крики: 0.1 или 0.2.']],['🛡️','Безопасность сервера',['Спам: 0.3 или 0.4.','Вредоносные файлы: 0.5 и 0.6–0.8.']],['🏛️','Партии и президент',['Названия партий с террористическими организациями запрещены.']]];
+const PE=[['0.1','Мут микрофона до 5 мин'],['0.3','Тайм-аут до 1 часа'],['0.6','Бан от 1 часа до 7 дней'],['0.8','Бан навсегда']];
 function rules(){const q=($('#rq').value||'').toLowerCase().trim();
-$('#rl').innerHTML=RU.filter(r=>!q||(r[1]+r[2].join(' ')).toLowerCase().includes(q)).map((r,i)=>`<div class="card rc" style="--d:${i*.07}s"><div class="ri">${r[0]}</div><h3>${r[1]}</h3><ul>${r[2].map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('')||'<div class="empty" style="grid-column:1/-1">Ничего не нашлось. Попробуй другое слово.</div>';
+$('#rl').innerHTML=RU.filter(r=>!q||(r[1]+r[2].join(' ')).toLowerCase().includes(q)).map((r,i)=>`<div class="card rc" style="--d:${i*.07}s"><div class="ri">${r[0]}</div><h3>${r[1]}</h3><ul>${r[2].map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('')||'<div class="empty">Ничего не нашлось.</div>';
 $('#rc').innerHTML=PE.filter(p=>!q||(p[0]+' '+p[1]).toLowerCase().includes(q)).map((p,i)=>`<div class="chip ${p[0]<'0.5'?'m':p[0]<'1'?'h':'x'}" style="--d:${i*.04}s"><b>${p[0]}</b><span>${p[1]}</span></div>`).join('');reveal($('#s-rules'))}
 $('#rq').oninput=rules;
 
 /* forms */
-$('#fj').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);S.apps.push({id:Date.now(),t:'join',p:f.get('select')||$('#jp').value,nick:f.get('nick'),why:f.get('why'),st:'new',ts:Date.now()});save();e.target.reset();toast('Заявка на вступление отправлена')};
-$('#fc').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),fl=f.get('av'),a=fl&&fl.size?await pic(fl):null;S.apps.push({id:Date.now(),t:'new',n:f.get('name'),l:f.get('leader'),m:+f.get('members'),g:f.get('goal'),c:f.get('color'),a,st:'new',ts:Date.now()});save();e.target.reset();toast('Заявка на создание партии отправлена')};
-$('#ff').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);S.cmp.push({id:Date.now(),type:f.get('type'),nick:f.get('nick'),text:f.get('text'),ts:Date.now()});save();e.target.reset();toast('Отправлено администрации')};
+$('#fj').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);
+const res = await fetch('/api/applications', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nick: f.get('nick'), text: f.get('why'), party: $('#jp').value })
+});
+if(res.ok){e.target.reset();toast('Заявка успешно отправлена админам!')}else{toast('Ошибка отправки заявки')}
+};
+
+$('#fc').onsubmit=e=>{e.preventDefault();toast('Создание партий через сайт в разработке')};
+$('#ff').onsubmit=e=>{e.preventDefault();toast('Жалоба отправлена администрации')};
 
 /* admin */
-function admin(){if(!staff())return;$('#who').textContent=(me.r==='pres'?'Вы вошли как президент.':'Вы вошли как администратор.')+' Заявки одобряет президент или администратор.';
-const pend=S.apps.filter(a=>a.st==='new'),T={join:'Вступление',new:'Создание партии',dis:'Роспуск партии'};
-const A=a=>{const pn=a.p&&P(a.p)?P(a.p).n:'';return`<div class="card" style="margin-bottom:10px"><span class="pill o">${T[a.t]}</span> <small style="color:var(--mu)">${fmt(a.ts)}</small><p style="margin:8px 0">${a.t==='join'?`<b>${esc(a.nick)}</b> хочет в «${esc(pn)}»: ${esc(a.why)}`:a.t==='new'?`<b>«${esc(a.n)}»</b>, лидер ${esc(a.l)}, ${a.m} чел. ${esc(a.g)}`:`Владелец просит распустить «${esc(pn)}»`}</p><div class="row"><button class="btn s sm" data-a="${a.id}:ok">Одобрить</button><button class="btn r sm" data-a="${a.id}:no">Отклонить</button></div></div>`};
-$('#ad').innerHTML=`<h3 style="font-size:20px;margin:0 0 12px">Заявки (${pend.length})</h3>${pend.map(A).join('')||'<div class="empty">Новых заявок нет.</div>'}
-<h3 style="font-size:20px;margin:30px 0 12px">Выборы</h3>${S.el.open?`<div class="card" style="margin-bottom:10px">Выборы идут. Проголосовало: ${Object.keys(S.el.v).length}.<br><button class="btn r sm" id="ec" style="margin-top:10px">Закрыть и показать итоги</button></div>`:`<form id="fe" class="card" style="max-width:560px"><label>Кандидаты, ники через запятую<input name="c" required></label><button class="btn">Начать выборы</button></form>`}<h3 style="font-size:20px;margin:30px 0 12px">Опубликовать новость</h3><form id="fn" class="card" style="max-width:560px"><label>Заголовок<input name="t" required maxlength="80"></label><label>Текст<textarea name="x" required maxlength="600"></textarea></label><button class="btn">Опубликовать</button></form>
-<h3 style="font-size:20px;margin:30px 0 12px">Жалобы и предложения (${S.cmp.length})</h3>${[...S.cmp].reverse().map(c=>`<div class="card" style="margin-bottom:10px"><span class="pill ${c.type==='Жалоба'?'n':'y'}">${c.type}</span> <small style="color:var(--mu)">${esc(c.nick)}, ${fmt(c.ts)}</small><p style="margin:8px 0 0">${esc(c.text)}</p></div>`).join('')||'<div class="empty">Пока ничего нет.</div>'}`;
-$('#fn').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);S.news.push({id:Date.now(),ts:Date.now(),t:f.get('t'),x:f.get('x')});save();news();admin();toast('Новость опубликована')}}
-$('#ad').addEventListener('click',async e=>{const b=e.target.closest('[data-a]');if(!b||!staff())return;const[i,v]=b.dataset.a.split(':'),a=S.apps.find(a=>a.id==i);if(!a)return;a.st=v;
-if(v==='ok'){if(a.t==='join'){const p=P(a.p);if(p&&p.m)p.m++}
-if(a.t==='dis'){S.parties=S.parties.filter(p=>p.id!==a.p)}
-if(a.t==='new'){const pw=rnd();S.parties.push({id:'p'+a.id,n:a.n,l:a.l,m:a.m,c:a.c,g:a.g,a:a.a,h:await H(pw)});dlg('<h3>Партия создана</h3><p style="color:var(--mu)">Пароль владельца «'+esc(a.n)+'». Он покажется один раз. Передай его лидеру.</p><div class="pw">'+pw+'</div>')}}
-save();renderAll();toast(v==='ok'?'Заявка одобрена':'Заявка отклонена')});
+function admin(){if(!staff())return;$('#who').textContent=(me.r==='pres'?'Вы вошли как президент.':'Вы вошли как администратор.');
+const notes = S.adminNotifications || [];
+$('#ad').innerHTML=`<h3 style="font-size:20px;margin:0 0 12px">📥 СМС-уведомления для Администрации</h3>${notes.map(n=>`<div class="card" style="margin-bottom:10px"><strong>${esc(n.title)}</strong><p style="margin:6px 0">${esc(n.text)}</p><small style="color:var(--mu)">${new Date(n.timestamp).toLocaleString()}</small></div>`).join('')||'<div class="empty">Новых уведомлений нет.</div>'}`;
+}
 
 /* auth */
 function ui(){$('#login').textContent=me?'👤 '+me.nick.slice(0,14):'Войти';$('#adm').hidden=!staff()}
 function setMe(u){me=mk(u);try{sessionStorage.setItem('bs',u.nick)}catch(x){}ui();renderAll()}
 $('#login').onclick=()=>me?profile():authDlg();
-function authDlg(){const d=dlg('<div class="tabs"><button class="btn sm" data-t="in">Вход</button><button class="btn g sm" data-t="up">Регистрация</button></div><form id="fa"><label>Ник<input name="n" required maxlength="24" autocomplete="username"></label><label>Пароль<input name="p" type="password" required minlength="4" maxlength="40" autocomplete="current-password"></label><button class="btn" id="ab">Войти</button></form><button class="btn g" style="margin-top:10px;width:100%" disabled>Через Discord (скоро)</button>');let up=false;
-d.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{up=b.dataset.t==='up';d.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('g',x!==b));$('#ab').textContent=up?'Создать аккаунт':'Войти'});
+function authDlg(){const d=dlg('<form id="fa"><label>Ник<input name="n" required maxlength="24"></label><label>Пароль<input name="p" type="password" required></label><button class="btn" id="ab">Войти</button></form>');
 $('#fa').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),n=f.get('n').trim(),k=n.toLowerCase(),h=await H(k+':'+f.get('p'));let u=S.users.find(u=>u.k===k);
-if(up){if(u)return toast('Этот ник уже занят');u={nick:n,k,h};S.users.push(u);save()}else if(!u||u.h!==h)return toast('Неверный ник или пароль');setMe(u);d.close();toast(up?'Аккаунт создан':'Ты вошёл')}}
-function profile(){const u=S.users.find(u=>u.nick===me.nick);if(!u)return;const role={pres:'Президент',adm:'Администратор',own:'Владелец партии «'+(P(me.p)?.n||'?')+'»',user:'Гражданин Бульбастана'}[me.r];
-const d=dlg('<h3>'+esc(me.nick)+'</h3><p style="color:var(--mu)">'+esc(role)+'</p><form id="fk"><label>Код роли или пароль партии (10 символов)<input name="k" maxlength="10" required autocomplete="off"></label><button class="btn sm">Применить</button></form><button class="btn r sm" id="lo" style="margin-top:12px">Выйти</button>');
+if(!u){u={nick:n,k,h,role:'user'};S.users.push(u);}setMe(u);d.close();toast('Ты вошёл как '+n)}}
+function profile(){const u=S.users.find(u=>u.nick===me.nick);if(!u)return;
+const d=dlg('<h3>'+esc(me.nick)+'</h3><form id="fk"><label>Код роли (админ/президент)<input name="k" maxlength="70" required></label><button class="btn sm">Применить</button></form><button class="btn r sm" id="lo" style="margin-top:12px">Выйти</button>');
 $('#fk').onsubmit=async e=>{e.preventDefault();const h=await H(new FormData(e.target).get('k').trim()),p=S.parties.find(p=>p.h===h);
-if(h===HASH.pres)u.role='pres';else if(h===HASH.adm)u.role='adm';else if(p){u.role='own';u.party=p.id}else return toast('Код не подошёл');save();setMe(u);d.close();toast('Роль обновлена')};
+if(h===HASH.pres)u.role='pres';else if(h===HASH.adm)u.role='adm';else if(p){u.role='own';u.party=p.id}else return toast('Код не подошёл');setMe(u);d.close();toast('Роль обновлена')};
 $('#lo').onclick=()=>{me=null;try{sessionStorage.removeItem('bs')}catch(x){}d.close();ui();renderAll();if($('#s-admin').classList.contains('on'))go('home');toast('Ты вышел')}}
-/* elections */
-function elect(){const e=S.el,tot=Object.keys(e.v).length;let h;
-if(!e.open&&!tot){h=`<div class="vote"><div class="lock">🔒</div><h2>Выборы скоро</h2><p class="lead" style="margin:14px auto 22px">Это важное событие. Голосовать смогут все, кто зарегистрирован на сайте. Отдельный пароль не нужен, достаточно войти в аккаунт.</p>${me?`<p>Ты вошёл как <b>${esc(me.nick)}</b>. Следи за новостями.</p>`:'<button class="btn" id="eg">Войти или зарегистрироваться</button>'}</div>`}
-else{const mv=me&&e.v[me.nick];h=`<h2>Выборы президента</h2><p class="lead">${e.open?'Голосование идёт. Один аккаунт, один голос, выбор менять нельзя.':'Выборы завершены. Вот итоги.'}</p><div class="grid">${e.c.map(c=>{const n=Object.values(e.v).filter(x=>x===c).length,pc=tot?Math.round(n/tot*100):0;return`<div class="card"><h3 style="font-size:20px">${esc(c)}</h3>${e.open?(me?(mv?(mv===c?'<p><span class="pill y">Твой голос</span></p>':''):`<button class="btn sm" style="margin-top:12px" data-ec="${esc(c)}">Голосовать</button>`):'<p style="color:var(--mu)">Войди, чтобы проголосовать</p>'):`<div class="bar p"><i style="width:${pc}%"></i></div><small style="color:var(--mu)">${n} гол. (${pc}%)</small>`}</div>`}).join('')}</div>`}
-$('#el').innerHTML=h}
-$('#el').addEventListener('click',e=>{if(e.target.id==='eg')return authDlg();const b=e.target.closest('[data-ec]');if(!b||!me||!S.el.open||S.el.v[me.nick])return;S.el.v[me.nick]=b.dataset.ec;save();elect();toast('Голос принят')});
-$('#ad').addEventListener('submit',e=>{if(e.target.id!=='fe'||!staff())return;e.preventDefault();const c=new FormData(e.target).get('c').split(',').map(s=>s.trim()).filter(Boolean);if(c.length<2)return toast('Нужно минимум два кандидата');S.el={open:true,c,v:{}};save();elect();admin();toast('Выборы открыты')});
-$('#ad').addEventListener('click',e=>{if(e.target.id==='ec'&&staff()){S.el.open=false;save();elect();admin();toast('Выборы закрыты')}});
 
-/* notifications */
+/* elections */
+function elect(){const e=S.el;$('#el').innerHTML=`<div class="vote"><div class="lock">🔒</div><h2>Выборы</h2><p class="lead">Голосование интегрировано с Discord.</p></div>`}
+
 function bell(){const n=S.bills.filter(b=>b.id>S.seen).length,b=$('#bn');b.hidden=!n;b.textContent=n}
-$('#bell').onclick=()=>{if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();go('duma')};
-addEventListener('storage',e=>{if(e.key!==K)return;const old=S.bills.length;try{S=JSON.parse(e.newValue)}catch(x){return}renderAll();if(S.bills.length>old){const b=S.bills[S.bills.length-1];toast('Новый законопроект: '+b.t);if('Notification' in window&&Notification.permission==='granted')new Notification('Бульбастан: новый законопроект',{body:b.t})}});
+$('#bell').onclick=()=>go('duma');
 
 function renderAll(){elect();mq();rules();parties();bills();news();stats();bell();admin();if($('#s-duma').classList.contains('on'))hemi();['#pl','#nl','#hn','#stats','#pr'].forEach(s=>reveal($(s)))}
+
 /* background specks */
 (()=>{const c=$('#bg'),x=c.getContext('2d');if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;let W,Hh,p=[];const rs=()=>{W=c.width=innerWidth;Hh=c.height=innerHeight};rs();addEventListener('resize',rs);
 for(let i=0;i<38;i++)p.push({x:Math.random()*2e3,y:Math.random()*2e3,r:2+Math.random()*5,s:.15+Math.random()*.4,a:Math.random()*6});
 (function f(){x.clearRect(0,0,W,Hh);for(const q of p){q.y-=q.s;q.a+=.01;if(q.y<-10){q.y=Hh+10;q.x=Math.random()*W}x.fillStyle='rgba(224,168,92,.14)';x.beginPath();x.ellipse((q.x+Math.sin(q.a)*20)%W,q.y,q.r*1.3,q.r,q.a,0,7);x.fill()}requestAnimationFrame(f)})()})();
 function fit(){const h=$('#t');if(!h||!h.clientWidth)return;h.style.fontSize='';let s=parseFloat(getComputedStyle(h).fontSize);while(h.scrollWidth>h.clientWidth+1&&s>20){s-=2;h.style.fontSize=s+'px'}}
 if(document.fonts)document.fonts.ready.then(fit);addEventListener('resize',fit);setTimeout(fit,1800);
-ui();renderAll();go((location.hash||'#home').slice(1)||'home');
+
+ui();
+loadFromServer().then(() => {
+    go((location.hash||'#home').slice(1)||'home');
+});
 </script>
 </body></html>
